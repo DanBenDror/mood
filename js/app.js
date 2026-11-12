@@ -4,6 +4,7 @@ import * as box from './crypto.js';
 import { makeRemote } from './remote.js';
 import { fetchWeather } from './weather.js';
 import { faceSvg, ICONS } from './faces.js';
+import * as reminders from './reminders.js';
 
 // ?demo in the address runs the app with no account and no cloud backup.
 const DEMO = new URLSearchParams(location.search).has('demo');
@@ -199,6 +200,48 @@ async function home() {
   const quality = state.relationship !== 'single' && sliderEl({ lo: 'Rough', hi: 'Great' }, state.relationship_quality,
     () => {}, async (v) => { state.relationship_quality = v; await store.setKV('state', state); });
 
+  // Reminders: a notification only when an entry has not been filled in yet.
+  const rem = { on: false, morning: '09:30', night: '22:30', ...((await store.getKV('reminders')) || {}) };
+  let reminderNodes = null;
+  if (remote && !DEMO) {
+    if (!reminders.supported()) {
+      reminderNodes = [h('h2', null, 'Reminders'),
+        h('p', { class: 'muted small' }, 'Reminders only work when you open Mood from its home-screen icon.')];
+    } else {
+      const note = h('p', { class: 'error small' });
+      const saveRem = async (patch) => {
+        const next = { ...rem, ...patch };
+        note.textContent = '';
+        try {
+          if (next.on) {
+            const sub = await reminders.enable();
+            await remote.saveSubscription({ ...sub, tz: Intl.DateTimeFormat().resolvedOptions().timeZone, morning_time: next.morning, night_time: next.night });
+          } else {
+            const endpoint = await reminders.disable();
+            if (endpoint) await remote.deleteSubscription(endpoint);
+          }
+          await store.setKV('reminders', next);
+          home();
+        } catch (e) { note.textContent = friendly(e); }
+      };
+      const time = (k) => h('input', { type: 'time', value: rem[k], onchange: (ev) => ev.target.value && saveRem({ [k]: ev.target.value }) });
+      const test = async () => {
+        note.className = 'muted small'; note.textContent = 'Sending…';
+        try { await remote.testReminder(); note.textContent = 'Sent. It should arrive within a few seconds.'; }
+        catch (e) { note.className = 'error small'; note.textContent = friendly(e); }
+      };
+      reminderNodes = [
+        h('h2', null, 'Reminders'),
+        h('div', { class: 'row', style: 'margin-top:0' }, h('span', null, 'Remind me if I haven\'t filled it in'),
+          h('div', { style: 'width:130px;flex:none' }, seg([[false, 'Off'], [true, 'On']], rem.on, (id) => saveRem({ on: id })))),
+        rem.on && h('div', { class: 'row' }, h('span', { class: 'muted' }, 'Morning'), time('morning')),
+        rem.on && h('div', { class: 'row' }, h('span', { class: 'muted' }, 'Night'), time('night')),
+        rem.on && h('button', { class: 'link', style: 'padding-left:0', onclick: test }, 'Send a test notification'),
+        note,
+      ];
+    }
+  }
+
   const unsynced = entries.filter((e) => !e.synced).length;
   const status = h('p', { class: 'muted small' }, DEMO ? 'Demo mode: nothing is backed up'
     : !remote ? 'Offline: will back up later'
@@ -218,6 +261,7 @@ async function home() {
     quality && h('div', { style: 'margin-top:14px' }, h('p', { class: 'muted small', style: 'margin:0' }, 'How is it going?'), quality),
     h('div', { class: 'row' }, h('span', null, 'On vacation'),
       h('div', { style: 'width:150px' }, seg([[false, 'No'], [true, 'Yes']], state.vacation, (id) => saveState({ vacation: id })))),
+    reminderNodes,
     h('div', { class: 'grow' }),
     h('div', { class: 'footer' }, status,
       h('button', { class: 'link', onclick: exportData }, 'Export my data'),

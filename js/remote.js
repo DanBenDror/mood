@@ -19,6 +19,15 @@ export async function makeRemote() {
       const { error } = await sb.from('entries').insert({ day: e.day, kind: e.kind, iv: e.iv, ct: e.ct, created_at: e.created_at });
       if (error && error.code !== '23505') throw error; // 23505 = already backed up
     },
+    async saveSubscription(row) {
+      ok(await sb.from('push_subscriptions').upsert({ ...row, updated_at: new Date().toISOString() }, { onConflict: 'endpoint' }));
+    },
+    async deleteSubscription(endpoint) { ok(await sb.from('push_subscriptions').delete().eq('endpoint', endpoint)); },
+    async testReminder() {
+      const { data, error } = await sb.functions.invoke('remind', { body: {} });
+      if (error) throw error;
+      return data;
+    },
     async pullEntries() { return ok(await sb.from('entries').select('day,kind,iv,ct,created_at').order('day')); },
   };
 }
