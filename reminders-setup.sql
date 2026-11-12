@@ -19,6 +19,11 @@ create policy "manage own subscriptions" on public.push_subscriptions for all to
 revoke all on public.push_subscriptions from anon, authenticated;
 grant select, insert, update, delete on public.push_subscriptions to authenticated;
 
+-- The reminder job runs as the service role: it may read subscriptions, remove
+-- dead ones, and check whether an entry exists. It gets no other access.
+grant select, delete on public.push_subscriptions to service_role;
+grant select on public.entries to service_role;
+
 create extension if not exists pg_cron with schema pg_catalog;
 create extension if not exists pg_net with schema extensions;
 
