@@ -227,7 +227,13 @@ async function home() {
       const time = (k) => h('input', { type: 'time', value: rem[k], onchange: (ev) => ev.target.value && saveRem({ [k]: ev.target.value }) });
       const test = async () => {
         note.className = 'muted small'; note.textContent = 'Sending…';
-        try { await remote.testReminder(); note.textContent = 'Sent. It should arrive within a few seconds.'; }
+        try {
+          const res = ((await remote.testReminder()) || {}).test || [];
+          const bad = res.filter((r) => r !== 'sent');
+          if (!res.length) throw new Error('This phone is not registered for reminders. Switch reminders Off and On again, then retry.');
+          if (bad.length) throw new Error(`The notification service refused it: ${bad.join(', ')}`);
+          note.textContent = 'Sent. It should arrive within a few seconds.';
+        }
         catch (e) { note.className = 'error small'; note.textContent = friendly(e); }
       };
       reminderNodes = [
