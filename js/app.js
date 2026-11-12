@@ -15,6 +15,9 @@ const NIGHT_OPENS_AT = 15; // morning entry: 04:00-15:00, night entry: 15:00-04:
 let remote = null; // cloud backup, or null (demo / offline)
 let key = null;    // encryption key, held on this device only
 let flow = null;   // the entry being filled in right now
+let onHome = false;    // is the home screen showing?
+let drawn = 0;         // counts screen changes, so a slow home refresh never replaces a newer screen
+let refreshed = false; // has this visit already checked the backup for entries from other devices?
 
 // ---------- small helpers ----------
 function h(tag, attrs, ...kids) {
@@ -32,6 +35,7 @@ function h(tag, attrs, ...kids) {
   return el;
 }
 function show(...nodes) {
+  onHome = false; drawn++;
   app.replaceChildren(...nodes.flat().filter(Boolean));
   app.style.animation = 'none'; void app.offsetWidth; app.style.animation = '';
   window.scrollTo(0, 0);
@@ -52,6 +56,7 @@ const friendly = (e) => (e && e.message) || String(e);
 // ---------- start-up ----------
 async function boot() {
   await store.open(DEMO ? 'mood-demo' : 'mood');
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {}); // offline copy + reminders
   key = await store.getKV('key');
   if (!DEMO) {
     try { remote = await makeRemote(); } catch { remote = null; }
@@ -60,7 +65,12 @@ async function boot() {
       return show(h('div', { class: 'question center' }, h('h1', null, 'No connection'),
         h('p', { class: 'muted' }, 'The first set-up needs the internet. Try again when you are online.')));
     }
-    if (!(await remote.session())) return authScreen();
+    let session = null;
+    try { session = await remote.session(); } catch { /* offline */ }
+    if (!session) {
+      if (key && !navigator.onLine) { remote = null; return home(); } // offline: keep working, back up later
+      return authScreen();
+    }
   }
   if (!key) return passphraseScreen();
   home();
@@ -152,17 +162,22 @@ async function passphraseScreen() {
 
 // ---------- backup ----------
 async function sync() {
-  if (!remote) return;
+  if (!remote) return 0;
+  let changed = 0;
   const local = await store.allEntries();
   for (const e of local.filter((x) => !x.synced)) {
     await remote.pushEntry(e);
     await store.putEntry({ ...e, synced: true });
+    changed++;
   }
   const have = new Set(local.map((e) => e.id));
-  for (const r of await remote.pullEntries()) { // restores entries on a new phone
+  for (const r of await remote.pullEntries()) { // entries locked in on another device, or a new phone
     const id = entryId(r.day, r.kind);
-    if (!have.has(id)) await store.putEntry({ id, day: r.day, kind: r.kind, iv: r.iv, ct: r.ct, created_at: r.created_at, synced: true });
+    if (have.has(id)) continue;
+    await store.putEntry({ id, day: r.day, kind: r.kind, iv: r.iv, ct: r.ct, created_at: r.created_at, synced: true });
+    changed++;
   }
+  return changed;
 }
 
 // ---------- home ----------
@@ -170,6 +185,7 @@ const DEFAULT_STATE = { relationship: 'single', relationship_since: null, relati
 
 async function home() {
   flow = null;
+  const ticket = drawn;
   const entries = await store.allEntries();
   const done = new Set(entries.map((e) => e.id));
   const state = { ...DEFAULT_STATE, ...((await store.getKV('state')) || {}) };
@@ -209,13 +225,19 @@ async function home() {
         h('p', { class: 'muted small' }, 'Reminders only work when you open Mood from its home-screen icon.')];
     } else {
       const note = h('p', { class: 'error small' });
+      const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (rem.on && rem.tz !== zone && Notification.permission === 'granted') { // travelled: move reminders to local time
+        reminders.enable()
+          .then((sub) => remote.saveSubscription({ ...sub, tz: zone, morning_time: rem.morning, night_time: rem.night }))
+          .then(() => store.setKV('reminders', { ...rem, tz: zone })).catch(() => {});
+      }
       const saveRem = async (patch) => {
-        const next = { ...rem, ...patch };
+        const next = { ...rem, ...patch, tz: zone };
         note.textContent = '';
         try {
           if (next.on) {
             const sub = await reminders.enable();
-            await remote.saveSubscription({ ...sub, tz: Intl.DateTimeFormat().resolvedOptions().timeZone, morning_time: next.morning, night_time: next.night });
+            await remote.saveSubscription({ ...sub, tz: zone, morning_time: next.morning, night_time: next.night });
           } else {
             const endpoint = await reminders.disable();
             if (endpoint) await remote.deleteSubscription(endpoint);
@@ -252,8 +274,13 @@ async function home() {
   const status = h('p', { class: 'muted small' }, DEMO ? 'Demo mode: nothing is backed up'
     : !remote ? 'Offline: will back up later'
     : unsynced ? `${unsynced} waiting to back up…` : `${entries.length} entries, all backed up`);
-  if (remote && unsynced) sync().then(home).catch(() => { status.textContent = `${unsynced} waiting to back up (will retry)`; });
+  if (remote && (unsynced || !refreshed)) {
+    refreshed = true;
+    sync().then((changed) => { if (changed && onHome) home(); })
+      .catch(() => { if (unsynced) status.textContent = `${unsynced} waiting to back up (will retry)`; });
+  }
 
+  if (ticket !== drawn) return; // another screen opened while this one was loading
   show(
     h('h1', null, t.open === 'morning' ? 'Good morning' : 'Good evening'),
     h('p', { class: 'muted', style: 'margin-bottom:22px' }, t.logical.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })),
@@ -273,6 +300,7 @@ async function home() {
       h('button', { class: 'link', onclick: exportData }, 'Export my data'),
       remote && h('button', { class: 'link', onclick: signOut }, 'Sign out')),
   );
+  onHome = true;
 }
 
 async function signOut() {
@@ -404,5 +432,10 @@ async function lockIn(btn, err) {
     h('p', { class: 'muted' }, kind === 'morning' ? 'Have a good day.' : 'Sleep well.')),
     h('button', { class: 'btn ghost', onclick: home }, 'Done'));
 }
+
+// Coming back to the app (e.g. the next morning): redraw for the current time and re-check the backup.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && onHome) { refreshed = false; home(); }
+});
 
 boot().catch((e) => show(h('div', { class: 'question' }, h('h1', null, 'Something went wrong'), h('p', { class: 'error' }, friendly(e)))));
