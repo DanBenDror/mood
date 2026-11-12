@@ -3,16 +3,16 @@
 export const SCHEMA_VERSION = 1;
 
 export const EMOTIONS = [
-  { id: 'happy', face: '😊', label: 'Happy' },
-  { id: 'excited', face: '🤩', label: 'Excited' },
-  { id: 'calm', face: '😌', label: 'Calm' },
-  { id: 'loving', face: '🥰', label: 'Loving' },
-  { id: 'tired', face: '😴', label: 'Tired' },
-  { id: 'bored', face: '😐', label: 'Bored' },
-  { id: 'sad', face: '😢', label: 'Sad' },
-  { id: 'anxious', face: '😰', label: 'Anxious' },
-  { id: 'stressed', face: '😫', label: 'Stressed' },
-  { id: 'angry', face: '😠', label: 'Angry' },
+  { id: 'happy', label: 'Happy' },
+  { id: 'excited', label: 'Excited' },
+  { id: 'calm', label: 'Calm' },
+  { id: 'loving', label: 'Loving' },
+  { id: 'tired', label: 'Tired' },
+  { id: 'bored', label: 'Bored' },
+  { id: 'sad', label: 'Sad' },
+  { id: 'anxious', label: 'Anxious' },
+  { id: 'stressed', label: 'Stressed' },
+  { id: 'angry', label: 'Angry' },
 ];
 
 const YES_NO = [{ id: 'yes', label: 'Yes' }, { id: 'no', label: 'No' }];

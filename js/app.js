@@ -3,6 +3,7 @@ import * as store from './store.js';
 import * as box from './crypto.js';
 import { makeRemote } from './remote.js';
 import { fetchWeather } from './weather.js';
+import { faceSvg, ICONS } from './faces.js';
 
 // ?demo in the address runs the app with no account and no cloud backup.
 const DEMO = new URLSearchParams(location.search).has('demo');
@@ -43,6 +44,8 @@ function today() {
   return { day: ymd(logical), logical, open: hr >= DAY_STARTS_AT && hr < NIGHT_OPENS_AT ? 'morning' : 'night' };
 }
 const entryId = (day, kind) => `${day}_${kind}`;
+const svgEl = (cls, markup) => { const s = h('span', { class: cls }); s.innerHTML = markup; return s; };
+const faceEl = (id) => svgEl('face', faceSvg(id));
 const friendly = (e) => (e && e.message) || String(e);
 
 // ---------- start-up ----------
@@ -171,13 +174,13 @@ async function home() {
   const state = { ...DEFAULT_STATE, ...((await store.getKV('state')) || {}) };
   const t = today();
 
-  const card = (kind, icon, title) => {
+  const card = (kind, title) => {
     const isDone = done.has(entryId(t.day, kind));
     const isOpen = !isDone && t.open === kind;
     const sub = isDone ? 'Locked in ✓' : isOpen ? 'Ready when you are'
       : kind === 'night' ? `Opens at ${NIGHT_OPENS_AT}:00` : 'Missed today';
     return h('button', { class: `card ${isDone ? 'done' : isOpen ? 'open' : ''}`, disabled: !isOpen, onclick: () => startFlow(kind, t.day) },
-      h('span', { class: 'icon' }, icon), h('span', null, h('div', { class: 'title' }, title), h('div', { class: 'sub' }, sub)));
+      svgEl('icon', ICONS[kind]), h('span', null, h('div', { class: 'title' }, title), h('div', { class: 'sub' }, sub)));
   };
 
   // last 14 days: top dot = morning, bottom dot = night
@@ -205,8 +208,8 @@ async function home() {
   show(
     h('h1', null, t.open === 'morning' ? 'Good morning' : 'Good evening'),
     h('p', { class: 'muted', style: 'margin-bottom:22px' }, t.logical.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })),
-    card('morning', '🌅', 'Morning'),
-    card('night', '🌙', 'Night'),
+    card('morning', 'Morning'),
+    card('night', 'Night'),
     h('h2', null, 'Last 14 days'),
     h('div', { class: 'dots' }, days),
     h('h2', null, 'Right now in life'),
@@ -269,6 +272,7 @@ function question() {
   const next = h('button', { class: 'btn', disabled: flow.answers[q.id] == null, onclick: forward }, flow.toReview ? 'Done' : 'Next');
   const set = (v) => { flow.answers[q.id] = v; next.disabled = false; };
 
+  let leaving = false;
   function forward() {
     if (flow.toReview || flow.i === qs.length - 1) return review();
     flow.i++; question();
@@ -285,8 +289,11 @@ function question() {
   } else {
     const options = q.type === 'faces' ? EMOTIONS : q.options;
     const buttons = options.map((o) => h('button', { class: flow.answers[q.id] === o.id ? 'on' : '', onclick: (ev) => {
+      if (leaving) return;
+      leaving = true; // tapping an answer moves straight on; only sliders need Next
       buttons.forEach((b) => b.classList.remove('on')); ev.currentTarget.classList.add('on'); set(o.id);
-    } }, q.type === 'faces' && h('span', null, o.face), o.label));
+      setTimeout(forward, 220);
+    } }, q.type === 'faces' && faceEl(o.id), o.label));
     body = h('div', { class: q.type === 'faces' ? 'faces' : 'choices' }, buttons);
   }
 
@@ -295,13 +302,13 @@ function question() {
       h('button', { class: 'back', onclick: back, 'aria-label': 'Back' }, flow.i === 0 && !flow.toReview ? '✕' : '←'),
       h('div', { class: 'progress' }, h('i', { style: `width:${((flow.i + 1) / (qs.length + 1)) * 100}%` }))),
     h('div', { class: 'question' }, h('h1', null, q.title), body),
-    next,
+    q.type === 'slider' && next,
   );
 }
 
 function answerView(q, v) {
   if (q.type === 'slider') return h('span', { class: 'bar' }, h('i', { style: `width:${v}%` }));
-  if (q.type === 'faces') { const e = EMOTIONS.find((x) => x.id === v); return `${e.face} ${e.label}`; }
+  if (q.type === 'faces') return h('span', { class: 'facepair' }, faceEl(v), EMOTIONS.find((x) => x.id === v).label);
   return q.options.find((o) => o.id === v).label;
 }
 
@@ -343,7 +350,7 @@ async function lockIn(btn, err) {
   }
   const kind = flow.kind; flow = null;
   sync().catch(() => {}); // backup failures are retried from the home screen
-  show(h('div', { class: 'question center' }, h('p', { class: 'big' }, '🔒'), h('h1', null, 'Locked in'),
+  show(h('div', { class: 'question center' }, svgEl('big', ICONS.lock), h('h1', null, 'Locked in'),
     h('p', { class: 'muted' }, kind === 'morning' ? 'Have a good day.' : 'Sleep well.')),
     h('button', { class: 'btn ghost', onclick: home }, 'Done'));
 }
