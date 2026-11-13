@@ -138,7 +138,7 @@ h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: v
 button.moon:active { transform: scale(.97); }
 .moon.off { background: transparent; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
 .moon.off small { color: var(--muted); opacity: 1; }
-.home .dots { align-self: stretch; }
+.home .dots { align-self: stretch; padding: 0 4px; }
 .links { display: flex; gap: 12px; align-self: stretch; }
 .links button { flex: 1; padding: 14px; border-radius: 14px; border: 1px solid var(--line); color: var(--text); font-weight: 500; background: color-mix(in srgb, var(--card) 70%, transparent); }
 .demo { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
