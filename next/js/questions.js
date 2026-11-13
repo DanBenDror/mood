@@ -25,7 +25,8 @@ const YES_NO = [{ id: 'yes', label: 'Yes' }, { id: 'no', label: 'No' }];
 // Slider answers are stored as 0-100. `from0: true` means the scale starts at
 // "nothing" (thumb starts on the left); otherwise it starts in the middle and
 // must be touched before moving on. `icons` questions show one drawing per
-// option (`art` names a drawing in js/faces.js).
+// option (`art` names a drawing in js/faces.js). Drawings are shown without
+// captions; `label` is only used for screen readers.
 export const FORMS = {
   morning: [
     { id: 'mood', type: 'slider', title: 'How are you feeling right now?', lo: 'Unpleasant', hi: 'Pleasant' },
@@ -57,8 +58,9 @@ export const FORMS = {
     { id: 'exercise', type: 'slider', title: 'How much did you exercise today?', lo: 'Not at all', hi: 'Hard workout', from0: true },
     { id: 'outside', type: 'slider', title: 'How much time did you spend outside?', lo: 'None', hi: 'Most of the day', from0: true },
     { id: 'hobby', type: 'choice', title: 'Did you do any hobbies today?', options: YES_NO },
-    { id: 'drinks', type: 'choice', title: 'How many drinks did you have today?', options: [
-      { id: '0', label: 'None' }, { id: '1-2', label: '1–2' }, { id: '3-4', label: '3–4' }, { id: '5-6', label: '5–6' }, { id: '7+', label: '7 or more' },
+    { id: 'drinks', type: 'icons', title: 'How many drinks did you have today?', options: [
+      { id: '0', label: 'None', art: 'drinks_0' }, { id: '1-2', label: '1 to 2', art: 'drinks_1' }, { id: '3-4', label: '3 to 4', art: 'drinks_2' },
+      { id: '5-6', label: '5 to 6', art: 'drinks_3' }, { id: '7+', label: '7 or more', art: 'drinks_4' },
     ] },
     { id: 'drugs', type: 'choice', title: 'Did you take any drugs today?', options: [
       { id: 'none', label: 'None' }, { id: 'cannabis', label: 'Cannabis' }, { id: 'other', label: 'Other' }, { id: 'both', label: 'Cannabis + other' },

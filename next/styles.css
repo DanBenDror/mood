@@ -100,10 +100,13 @@ input[type=time] { font: inherit; color: var(--text); background: var(--card); b
   background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 12px;
   display: flex; align-items: center; gap: 10px; font-size: 17px;
 }
-.faces button .face { width: 42px; height: 42px; flex: none; }
+.faces button { justify-content: center; padding: 14px; }
+.faces button .face { width: 58px; height: 58px; flex: none; }
+.face svg, .big svg { filter: url(#sketch); } /* hand-drawn wobble, defined in index.html */
 .faces button.on .face { color: var(--accent); }
 .facepair { display: inline-flex; align-items: center; gap: 8px; }
-.facepair .face { width: 24px; height: 24px; }
+.facepair .face { width: 30px; height: 30px; }
+.facepair .face svg { filter: none; }
 .choices { display: flex; flex-direction: column; gap: 12px; }
 .choices button { padding: 20px; justify-content: center; font-size: 19px; font-weight: 600; }
 .faces button.on, .choices button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
@@ -161,7 +164,7 @@ button.moon:active { transform: scale(.97); }
 
 /* Questions answered by picking a drawing */
 .icons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.icons button { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 6px 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; font-size: 14px; line-height: 1.25; }
-.icons button .face { width: 58px; height: 58px; }
+.icons button { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px 6px; display: flex; align-items: center; justify-content: center; }
+.icons button .face { width: 66px; height: 66px; }
 .icons button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
 .icons button.on .face { color: var(--accent); }

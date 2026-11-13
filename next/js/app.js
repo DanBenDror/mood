@@ -362,7 +362,11 @@ function sliderEl(q, value, onInput, onCommit) {
   paint();
   input.addEventListener('input', touch);
   input.addEventListener('pointerdown', () => setTimeout(touch, 0)); // a tap without dragging also counts
-  input.addEventListener('change', () => onCommit && onCommit(+input.value));
+  // Letting go of the slider commits the answer (also covers a tap without dragging, and keyboard use).
+  const commit = () => onCommit && onCommit(+input.value);
+  input.addEventListener('change', commit);
+  input.addEventListener('pointerup', () => setTimeout(commit, 0));
+  input.addEventListener('touchend', () => setTimeout(commit, 0));
   return h('div', { class: 'slider-wrap' }, input, h('div', { class: 'ends' }, h('span', null, q.lo), h('span', null, q.hi)));
 }
 
@@ -379,8 +383,7 @@ function startFlow(kind, day) {
 function question() {
   const qs = FORMS[flow.kind];
   const q = qs[flow.i];
-  const next = h('button', { class: 'btn', disabled: flow.answers[q.id] == null, onclick: forward }, flow.toReview ? 'Done' : 'Next');
-  const set = (v) => { flow.answers[q.id] = v; next.disabled = false; };
+  const set = (v) => { flow.answers[q.id] = v; };
 
   let leaving = false;
   function forward() {
@@ -395,15 +398,17 @@ function question() {
 
   let body;
   if (q.type === 'slider') {
-    body = sliderEl(q, flow.answers[q.id], set);
+    // No Next button: releasing the slider moves on. A short pause lets the choice register visually.
+    body = sliderEl(q, flow.answers[q.id], set, (v) => { if (leaving) return; leaving = true; set(v); setTimeout(forward, 260); });
   } else {
     const options = q.type === 'faces' ? EMOTIONS : q.options;
-    const buttons = options.map((o) => h('button', { class: flow.answers[q.id] === o.id ? 'on' : '', onclick: (ev) => {
+    const drawn_ = q.type !== 'choice'; // drawings carry no caption
+    const buttons = options.map((o) => h('button', { class: flow.answers[q.id] === o.id ? 'on' : '', 'aria-label': drawn_ ? o.label : null, onclick: (ev) => {
       if (leaving) return;
-      leaving = true; // tapping an answer moves straight on; only sliders need Next
+      leaving = true; // tapping an answer moves straight on
       buttons.forEach((b) => b.classList.remove('on')); ev.currentTarget.classList.add('on'); set(o.id);
       setTimeout(forward, 220);
-    } }, q.type === 'faces' ? faceEl(o.id) : q.type === 'icons' ? svgEl('face', ART[o.art]) : null, h('span', null, o.label)));
+    } }, q.type === 'faces' ? faceEl(o.id) : q.type === 'icons' ? svgEl('face', ART[o.art]) : h('span', null, o.label)));
     body = h('div', { class: q.type === 'faces' ? 'faces' : q.type === 'icons' ? 'icons' : 'choices' }, buttons);
   }
 
@@ -412,14 +417,14 @@ function question() {
       h('button', { class: 'back', onclick: back, 'aria-label': 'Back' }, flow.i === 0 && !flow.toReview ? '✕' : '←'),
       h('div', { class: 'progress' }, h('i', { style: `width:${((flow.i + 1) / (qs.length + 1)) * 100}%` }))),
     h('div', { class: 'question' }, h('h1', null, q.title), body),
-    q.type === 'slider' && next,
   );
 }
 
 function answerView(q, v) {
   if (q.type === 'slider') return h('span', { class: 'bar' }, h('i', { style: `width:${v}%` }));
-  if (q.type === 'faces') return h('span', { class: 'facepair' }, faceEl(v), EMOTIONS.find((x) => x.id === v).label);
-  return q.options.find((o) => o.id === v).label;
+  if (q.type === 'faces') return h('span', { class: 'facepair' }, faceEl(v));
+  const o = q.options.find((x) => x.id === v);
+  return q.type === 'icons' ? h('span', { class: 'facepair' }, svgEl('face', ART[o.art])) : o.label;
 }
 
 function review() {
