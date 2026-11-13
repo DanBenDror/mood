@@ -1,6 +1,6 @@
 // Service worker: shows reminder notifications and opens the app when one is tapped.
-const CACHE = 'mood-v1';
-const SHELL = ['./', 'index.html', 'styles.css', 'manifest.webmanifest', 'icon-180.png',
+const CACHE = 'mood-v2';
+const SHELL = ['./', 'index.html', 'styles.css', 'manifest.webmanifest', 'icon-180.png', 'fonts/sacramento.woff2',
   'js/app.js', 'js/config.js', 'js/crypto.js', 'js/faces.js', 'js/questions.js',
   'js/reminders.js', 'js/remote.js', 'js/store.js', 'js/weather.js'];
 

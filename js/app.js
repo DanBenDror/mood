@@ -3,11 +3,12 @@ import * as store from './store.js';
 import * as box from './crypto.js';
 import { makeRemote } from './remote.js';
 import { fetchWeather } from './weather.js';
-import { faceSvg, ICONS } from './faces.js';
+import { faceSvg, ICONS, ART, LOGO } from './faces.js';
 import * as reminders from './reminders.js';
 
 // ?demo in the address runs the app with no account and no cloud backup.
-const DEMO = new URLSearchParams(location.search).has('demo');
+// The copy published under /next/ is a preview and always runs as a demo.
+const DEMO = new URLSearchParams(location.search).has('demo') || location.pathname.includes('/next/');
 const app = document.getElementById('app');
 const DAY_STARTS_AT = 4;   // a "day" runs 04:00 -> 04:00, so a 1am night entry counts for the day before
 const NIGHT_OPENS_AT = 15; // morning entry: 04:00-15:00, night entry: 15:00-04:00
@@ -15,6 +16,8 @@ const NIGHT_OPENS_AT = 15; // morning entry: 04:00-15:00, night entry: 15:00-04:
 let remote = null; // cloud backup, or null (demo / offline)
 let key = null;    // encryption key, held on this device only
 let flow = null;   // the entry being filled in right now
+let demoKind = null;   // demo only: which entry to pretend is open
+let sheetOpen = null;  // 'status' | 'settings' | null: the panel showing over the home screen
 let onHome = false;    // is the home screen showing?
 let drawn = 0;         // counts screen changes, so a slow home refresh never replaces a newer screen
 let refreshed = false; // has this visit already checked the backup for entries from other devices?
@@ -28,7 +31,7 @@ function h(tag, attrs, ...kids) {
     else if (v === true) el.setAttribute(k, '');
     else if (v !== false && v != null) el.setAttribute(k, v);
   }
-  for (const kid of kids.flat()) {
+  for (const kid of kids.flat(Infinity)) {
     if (kid == null || kid === false) continue;
     el.append(kid.nodeType ? kid : document.createTextNode(kid));
   }
@@ -36,7 +39,7 @@ function h(tag, attrs, ...kids) {
 }
 function show(...nodes) {
   onHome = false; drawn++;
-  app.replaceChildren(...nodes.flat().filter(Boolean));
+  app.replaceChildren(...nodes.flat(Infinity).filter(Boolean));
   app.style.animation = 'none'; void app.offsetWidth; app.style.animation = '';
   window.scrollTo(0, 0);
 }
@@ -46,7 +49,7 @@ function today() {
   const now = new Date();
   const logical = new Date(now.getTime() - DAY_STARTS_AT * 3600e3);
   const hr = now.getHours();
-  return { day: ymd(logical), logical, open: hr >= DAY_STARTS_AT && hr < NIGHT_OPENS_AT ? 'morning' : 'night' };
+  return { day: ymd(logical), logical, open: (DEMO && demoKind) || (hr >= DAY_STARTS_AT && hr < NIGHT_OPENS_AT ? 'morning' : 'night') };
 }
 const entryId = (day, kind) => `${day}_${kind}`;
 const svgEl = (cls, markup) => { const s = h('span', { class: cls }); s.innerHTML = markup; return s; };
@@ -56,6 +59,11 @@ const friendly = (e) => (e && e.message) || String(e);
 // ---------- start-up ----------
 async function boot() {
   await store.open(DEMO ? 'mood-demo' : 'mood');
+  if (DEMO) { // a sandbox: starts empty every time, never touches the account or the backup
+    await store.clearEntries();
+    key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    return home();
+  }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {}); // offline copy + reminders
   key = await store.getKV('key');
   if (!DEMO) {
@@ -190,15 +198,13 @@ async function home() {
   const done = new Set(entries.map((e) => e.id));
   const state = { ...DEFAULT_STATE, ...((await store.getKV('state')) || {}) };
   const t = today();
+  const kind = t.open; // the home screen only ever offers the entry that is open right now
 
-  const card = (kind, title) => {
-    const isDone = done.has(entryId(t.day, kind));
-    const isOpen = !isDone && t.open === kind;
-    const sub = isDone ? 'Locked in ✓' : isOpen ? 'Ready when you are'
-      : kind === 'night' ? `Opens at ${NIGHT_OPENS_AT}:00` : 'Missed today';
-    return h('button', { class: `card ${isDone ? 'done' : isOpen ? 'open' : ''}`, disabled: !isOpen, onclick: () => startFlow(kind, t.day) },
-      svgEl('icon', ICONS[kind]), h('span', null, h('div', { class: 'title' }, title), h('div', { class: 'sub' }, sub)));
-  };
+  const moon = done.has(entryId(t.day, kind))
+    ? h('div', { class: 'moon off' }, h('span', null, 'Locked in'),
+        h('small', null, kind === 'morning' ? `Night opens at ${NIGHT_OPENS_AT}:00` : 'Back in the morning'))
+    : h('button', { class: 'moon', onclick: () => startFlow(kind, t.day) },
+        h('span', null, kind === 'morning' ? 'Morning' : 'Night'), h('small', null, 'tap to begin'));
 
   // last 14 days: top dot = morning, bottom dot = night
   const days = [];
@@ -221,7 +227,7 @@ async function home() {
   let reminderNodes = null;
   if (remote && !DEMO) {
     if (!reminders.supported()) {
-      reminderNodes = [h('h2', null, 'Reminders'),
+      reminderNodes = [h('h3', null, 'Reminders'),
         h('p', { class: 'muted small' }, 'Reminders only work when you open Mood from its home-screen icon.')];
     } else {
       const note = h('p', { class: 'error small' });
@@ -259,7 +265,7 @@ async function home() {
         catch (e) { note.className = 'error small'; note.textContent = friendly(e); }
       };
       reminderNodes = [
-        h('h2', null, 'Reminders'),
+        h('h3', null, 'Reminders'),
         h('div', { class: 'row', style: 'margin-top:0' }, h('span', null, 'Remind me if I haven\'t filled it in'),
           h('div', { style: 'width:130px;flex:none' }, seg([[false, 'Off'], [true, 'On']], rem.on, (id) => saveRem({ on: id })))),
         rem.on && h('div', { class: 'row' }, h('span', { class: 'muted' }, 'Morning'), time('morning')),
@@ -280,27 +286,52 @@ async function home() {
       .catch(() => { if (unsynced) status.textContent = `${unsynced} waiting to back up (will retry)`; });
   }
 
+  // The two panels that slide up over the home screen.
+  const sheets = {
+    status: ['Status', [
+      h('h3', null, 'Relationship'),
+      seg([['single', 'Single'], ['dating', 'Dating'], ['relationship', 'Relationship']], state.relationship,
+        (id) => saveState({ relationship: id, relationship_since: t.day, relationship_quality: null })),
+      quality && h('div', { style: 'margin-top:14px' }, h('p', { class: 'muted small', style: 'margin:0' }, 'How is it going?'), quality),
+      h('div', { class: 'row' }, h('span', null, 'On vacation'),
+        h('div', { style: 'width:150px' }, seg([[false, 'No'], [true, 'Yes']], state.vacation, (id) => saveState({ vacation: id })))),
+    ]],
+    settings: ['Settings', [
+      reminderNodes || [h('h3', null, 'Reminders'), h('p', { class: 'muted small' }, DEMO ? 'Not available in the demo.' : 'Available when you are online.')],
+      h('h3', null, 'Backup'), status,
+      h('h3', null, 'Your data'),
+      h('button', { class: 'btn ghost', onclick: exportData }, 'Export my data'),
+      remote && h('button', { class: 'link', style: 'align-self:center', onclick: signOut }, 'Sign out'),
+    ]],
+  };
+  const closeSheet = () => { sheetOpen = null; document.querySelector('.sheet-wrap')?.remove(); };
+  const drawSheet = () => {
+    document.querySelector('.sheet-wrap')?.remove();
+    if (!sheetOpen) return;
+    const [title, nodes] = sheets[sheetOpen];
+    const wrap = h('div', { class: 'sheet-wrap', onclick: (ev) => ev.target === wrap && closeSheet() },
+      h('div', { class: 'sheet' },
+        h('div', { class: 'sheet-head' }, h('h2', null, title), h('button', { class: 'back', onclick: closeSheet, 'aria-label': 'Close' }, '\u2715')),
+        nodes));
+    app.append(wrap);
+  };
+  const link = (id, label) => h('button', { onclick: () => { sheetOpen = id; drawSheet(); } }, label);
+
   if (ticket !== drawn) return; // another screen opened while this one was loading
   show(
-    h('h1', null, t.open === 'morning' ? 'Good morning' : 'Good evening'),
-    h('p', { class: 'muted', style: 'margin-bottom:22px' }, t.logical.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })),
-    card('morning', 'Morning'),
-    card('night', 'Night'),
-    h('h2', null, 'Last 14 days'),
-    h('div', { class: 'dots' }, days),
-    h('h2', null, 'Right now in life'),
-    seg([['single', 'Single'], ['dating', 'Dating'], ['relationship', 'Relationship']], state.relationship,
-      (id) => saveState({ relationship: id, relationship_since: t.day, relationship_quality: null })),
-    quality && h('div', { style: 'margin-top:14px' }, h('p', { class: 'muted small', style: 'margin:0' }, 'How is it going?'), quality),
-    h('div', { class: 'row' }, h('span', null, 'On vacation'),
-      h('div', { style: 'width:150px' }, seg([[false, 'No'], [true, 'Yes']], state.vacation, (id) => saveState({ vacation: id })))),
-    reminderNodes,
-    h('div', { class: 'grow' }),
-    h('div', { class: 'footer' }, status,
-      h('button', { class: 'link', onclick: exportData }, 'Export my data'),
-      remote && h('button', { class: 'link', onclick: signOut }, 'Sign out')),
+    DEMO && h('div', { class: 'demo' }, h('span', null, 'Demo: nothing is saved'),
+      seg([['morning', 'Morning'], ['night', 'Night']], kind, (id) => { demoKind = id; home(); }),
+      h('button', { class: 'link', onclick: async () => { await store.clearEntries(); home(); } }, 'Reset')),
+    h('div', { class: 'home' },
+      svgEl('logo', LOGO),
+      h('div', { class: 'script' }, 'what\u2019s the mood?'),
+      moon,
+      h('div', { class: 'dots' }, days),
+      h('div', { class: 'grow' }),
+      h('div', { class: 'links' }, link('status', 'Status'), link('settings', 'Settings'))),
   );
   onHome = true;
+  drawSheet();
 }
 
 async function signOut() {
@@ -337,6 +368,7 @@ function sliderEl(q, value, onInput, onCommit) {
 
 // ---------- filling in an entry ----------
 function startFlow(kind, day) {
+  sheetOpen = null;
   flow = { kind, day, i: 0, answers: {}, started_at: new Date().toISOString(), toReview: false, weather: null };
   fetchWeather().then((w) => { if (flow) flow.weather = w; });
   // scales that start at "nothing" are pre-answered with 0
@@ -371,8 +403,8 @@ function question() {
       leaving = true; // tapping an answer moves straight on; only sliders need Next
       buttons.forEach((b) => b.classList.remove('on')); ev.currentTarget.classList.add('on'); set(o.id);
       setTimeout(forward, 220);
-    } }, q.type === 'faces' && faceEl(o.id), o.label));
-    body = h('div', { class: q.type === 'faces' ? 'faces' : 'choices' }, buttons);
+    } }, q.type === 'faces' ? faceEl(o.id) : q.type === 'icons' ? svgEl('face', ART[o.art]) : null, h('span', null, o.label)));
+    body = h('div', { class: q.type === 'faces' ? 'faces' : q.type === 'icons' ? 'icons' : 'choices' }, buttons);
   }
 
   show(
@@ -437,5 +469,13 @@ async function lockIn(btn, err) {
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && onHome) { refreshed = false; home(); }
 });
+
+(function sky() {
+  let n = 7; const r = () => (n = (n * 16807) % 2147483647) / 2147483647;
+  let stars = '';
+  for (let i = 0; i < 90; i++) stars += `<circle cx="${(r() * 400).toFixed(1)}" cy="${(r() * 860).toFixed(1)}" r="${[0.7, 0.9, 0.9, 1.3][Math.floor(r() * 4)]}"/>`;
+  document.getElementById('sky').innerHTML = `<svg viewBox="0 0 400 860" preserveAspectRatio="xMidYMid slice"><g fill="var(--accent)" fill-opacity="0.2">${stars}</g>` +
+    '<path d="M450 730a230 230 0 1 1-292-222a184 184 0 0 0 292 222z" fill="var(--accent)" fill-opacity="0.045"/></svg>';
+})();
 
 boot().catch((e) => show(h('div', { class: 'question' }, h('h1', null, 'Something went wrong'), h('p', { class: 'error' }, friendly(e)))));

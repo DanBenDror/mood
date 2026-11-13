@@ -28,3 +28,18 @@ export const ICONS = {
   night: icon('<path d="M39 28.500A16.500 16.500 0 1 1 19.500 9a13 13 0 0 0 19.500 19.500z"/>'),
   lock: icon('<rect x="11" y="21" width="26" height="19" rx="4"/><path d="M16.500 21v-5.500a7.500 7.500 0 0 1 15 0V21"/>'),
 };
+
+// Drawings for `icons` questions. Beds are seen from above: headboard at the top,
+// heads on the pillow, blanket below.
+const bed = (inner) => icon('<rect x="8" y="5" width="32" height="38" rx="5"/><path d="M8 23h32"/>' + inner);
+const head = (x) => `<circle cx="${x}" cy="14.5" r="4.200"/>`;
+export const ART = {
+  bed_one: bed(head(24)),
+  bed_two: bed(head(17) + head(31)),
+  bed_heart: bed(head(17) + head(31) + '<path d="M24 38.500l-5.800-5.800a3.600 3.600 0 0 1 5.800-4.200a3.600 3.600 0 0 1 5.800 4.200z" fill="currentColor" stroke-width="1"/>'),
+  health_sick: wrap('<path d="M13.500 19q3.500 3.500 7 0M27.500 19q3.500 3.500 7 0"/><path d="M13 14.500l6-1.500M35 14.500l-6-1.500" stroke-width="1.800"/><path d="M18.500 28h11v7.500a5.500 5.500 0 0 1-11 0z" fill="currentColor" stroke-width="1"/>'),
+  health_dizzy: wrap('<path d="M14 17.500l6 6M20 17.500l-6 6M28 17.500l6 6M34 17.500l-6 6"/><path d="M15 33q2.250-3.500 4.500 0t4.500 0t4.500 0t4.500 0"/>'),
+  health_good: wrap(dot(17, 20) + dot(31, 20) + '<path d="M14 27q10 11 20 0"/>'),
+};
+
+export const LOGO = '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="20" fill="var(--moon-dim)"/><path d="M24 4a20 20 0 0 1 0 40z" fill="var(--accent)"/></svg>';

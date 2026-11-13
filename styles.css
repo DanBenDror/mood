@@ -1,6 +1,7 @@
+@font-face { font-family: "Sacramento"; src: url("fonts/sacramento.woff2") format("woff2"); font-display: swap; }
 :root {
-  --bg: #14131a; --card: #1f1d28; --line: #2e2b3a; --text: #f3f0ea; --muted: #9a95a8;
-  --accent: #f2b66d; --accent-ink: #2a1c08; --danger: #ef8a80; --ok: #8fd6a4;
+  --bg: #15130e; --card: #1f1c15; --line: #332f24; --text: #f6f0dc; --muted: #9a9482;
+  --accent: #f1dfa2; --accent-ink: #15130e; --moon-dim: #3d382a; --danger: #ef8a80; --ok: #b9d6a0;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; margin: 0; }
@@ -105,7 +106,7 @@ input[type=time] { font: inherit; color: var(--text); background: var(--card); b
 .facepair .face { width: 24px; height: 24px; }
 .choices { display: flex; flex-direction: column; gap: 12px; }
 .choices button { padding: 20px; justify-content: center; font-size: 19px; font-weight: 600; }
-.faces button.on, .choices button.on { border-color: var(--accent); background: #3a2d1a; }
+.faces button.on, .choices button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
 
 /* Review */
 .review { list-style: none; margin: 16px 0 20px; padding: 0; }
@@ -116,3 +117,50 @@ input[type=time] { font: inherit; color: var(--text); background: var(--card); b
 .bar { display: inline-block; width: 96px; height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; vertical-align: middle; }
 .bar i { display: block; height: 100%; background: var(--accent); }
 .big { display: block; width: 72px; height: 72px; margin: 0 auto 16px; color: var(--accent); }
+
+/* Star field behind every screen */
+#sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+#sky svg { width: 100%; height: 100%; display: block; }
+#app { position: relative; z-index: 1; }
+h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 26px 0 10px; font-weight: 600; }
+
+/* Home */
+.home { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 22px; padding-top: 14px; }
+.logo { width: 40px; height: 40px; }
+.logo svg { display: block; width: 100%; height: 100%; }
+.script { font-family: "Sacramento", "Snell Roundhand", cursive; font-size: 52px; line-height: 1.1; color: var(--text); }
+.moon {
+  width: 190px; height: 190px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 22px; margin: 10px 0;
+  box-shadow: 0 0 80px color-mix(in srgb, var(--accent) 24%, transparent); transition: transform .12s;
+}
+.moon small { font-weight: 500; font-size: 14px; opacity: .7; margin-top: 2px; }
+button.moon:active { transform: scale(.97); }
+.moon.off { background: transparent; color: var(--text); border: 1px solid var(--line); box-shadow: none; }
+.moon.off small { color: var(--muted); opacity: 1; }
+.home .dots { align-self: stretch; }
+.links { display: flex; gap: 12px; align-self: stretch; }
+.links button { flex: 1; padding: 14px; border-radius: 14px; border: 1px solid var(--line); color: var(--text); font-weight: 500; background: color-mix(in srgb, var(--card) 70%, transparent); }
+.demo { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+.demo .seg { flex: 1; } .demo .seg button { padding: 7px 4px; font-size: 13px; } .demo .link { padding: 6px; font-size: 13px; }
+
+/* Panels over the home screen */
+.sheet-wrap { position: fixed; inset: 0; z-index: 5; background: rgba(0, 0, 0, .6); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  width: 100%; max-width: 480px; max-height: 88dvh; overflow-y: auto; display: flex; flex-direction: column;
+  background: var(--card); border-radius: 26px 26px 0 0; border: 1px solid var(--line); border-bottom: 0;
+  padding: 18px 20px calc(env(safe-area-inset-bottom) + 26px); animation: rise .22s ease;
+}
+@keyframes rise { from { transform: translateY(30px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; }
+.sheet-head h2 { margin: 0; font-size: 22px; text-transform: none; letter-spacing: 0; color: var(--text); }
+.sheet-head .back { width: 40px; height: 40px; border-radius: 50%; background: var(--bg); font-size: 16px; }
+.sheet .seg { background: var(--bg); }
+.sheet input[type=time] { background: var(--bg); }
+
+/* Questions answered by picking a drawing */
+.icons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.icons button { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 6px 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; font-size: 14px; line-height: 1.25; }
+.icons button .face { width: 58px; height: 58px; }
+.icons button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
+.icons button.on .face { color: var(--accent); }
