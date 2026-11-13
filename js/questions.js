@@ -24,48 +24,48 @@ const YES_NO = [{ id: 'yes', label: 'Yes' }, { id: 'no', label: 'No' }];
 
 // Slider answers are stored as 0-100. `from0: true` means the scale starts at
 // "nothing" (thumb starts on the left); otherwise it starts in the middle and
-// must be touched before moving on. `icons` questions show one drawing per
+// must be touched before moving on. `short` is the name shown on the review list. `icons` questions show one drawing per
 // option (`art` names a drawing in js/faces.js). Drawings are shown without
 // captions; `label` is only used for screen readers.
 export const FORMS = {
   morning: [
-    { id: 'mood', type: 'slider', title: 'How are you feeling right now?', lo: 'Unpleasant', hi: 'Pleasant' },
-    { id: 'energy', type: 'slider', title: 'How is your energy?', lo: 'Drained', hi: 'Wired' },
-    { id: 'emotion', type: 'faces', title: 'Which emotion is strongest right now?' },
-    { id: 'sleep', type: 'slider', title: 'How did you sleep?', lo: 'Terribly', hi: 'Perfectly' },
-    { id: 'slept_with', type: 'icons', title: 'Did you sleep with someone?', options: [
+    { id: 'mood', short: 'Mood', type: 'slider', title: 'How are you feeling right now?', lo: 'Unpleasant', hi: 'Pleasant' },
+    { id: 'energy', short: 'Energy', type: 'slider', title: 'How is your energy?', lo: 'Drained', hi: 'Wired' },
+    { id: 'emotion', short: 'Emotion now', type: 'faces', title: 'Which emotion is strongest right now?' },
+    { id: 'sleep', short: 'Sleep', type: 'slider', title: 'How did you sleep?', lo: 'Terribly', hi: 'Perfectly' },
+    { id: 'slept_with', short: 'Slept with', type: 'icons', title: 'Did you sleep with someone?', options: [
       { id: 'alone', label: 'Alone', art: 'bed_one' },
       { id: 'shared', label: 'Shared a bed', art: 'bed_two' },
       { id: 'sex', label: 'Had sex', art: 'bed_heart' },
     ] },
-    { id: 'health', type: 'icons', title: 'How is your health today?', options: [
+    { id: 'health', short: 'Health', type: 'icons', title: 'How is your health today?', options: [
       { id: 'sick', label: 'Sick', art: 'health_sick' },
       { id: 'unwell', label: 'Under the weather', art: 'health_dizzy' },
       { id: 'healthy', label: 'Healthy', art: 'health_good' },
     ] },
-    { id: 'day_type', type: 'choice', title: 'What kind of day is today?', options: [
+    { id: 'day_type', short: 'Day', type: 'choice', title: 'What kind of day is today?', options: [
       { id: 'work', label: 'Work' }, { id: 'study', label: 'Study' }, { id: 'off', label: 'Day off' },
     ] },
   ],
   night: [
-    { id: 'mood', type: 'slider', title: 'How are you feeling right now?', lo: 'Unpleasant', hi: 'Pleasant' },
-    { id: 'energy', type: 'slider', title: 'How is your energy?', lo: 'Drained', hi: 'Wired' },
-    { id: 'emotion', type: 'faces', title: 'Which emotion is strongest right now?' },
-    { id: 'emotion_day', type: 'faces', title: 'Which emotion was strongest today?' },
-    { id: 'stress', type: 'slider', title: 'How stressful was today?', lo: 'Not at all', hi: 'Extremely', from0: true },
-    { id: 'social', type: 'slider', title: 'How much time did you spend with people?', lo: 'Alone all day', hi: 'With people all day', from0: true },
-    { id: 'food', type: 'slider', title: 'How well did you eat today?', lo: 'Badly', hi: 'Very well' },
-    { id: 'exercise', type: 'slider', title: 'How much did you exercise today?', lo: 'Not at all', hi: 'Hard workout', from0: true },
-    { id: 'outside', type: 'slider', title: 'How much time did you spend outside?', lo: 'None', hi: 'Most of the day', from0: true },
-    { id: 'hobby', type: 'choice', title: 'Did you do any hobbies today?', options: YES_NO },
-    { id: 'drinks', type: 'icons', title: 'How many drinks did you have today?', options: [
+    { id: 'mood', short: 'Mood', type: 'slider', title: 'How are you feeling right now?', lo: 'Unpleasant', hi: 'Pleasant' },
+    { id: 'energy', short: 'Energy', type: 'slider', title: 'How is your energy?', lo: 'Drained', hi: 'Wired' },
+    { id: 'emotion', short: 'Emotion now', type: 'faces', title: 'Which emotion is strongest right now?' },
+    { id: 'emotion_day', short: 'Emotion today', type: 'faces', title: 'Which emotion was strongest today?' },
+    { id: 'stress', short: 'Stress', type: 'slider', title: 'How stressful was today?', lo: 'Not at all', hi: 'Extremely', from0: true },
+    { id: 'social', short: 'People', type: 'slider', title: 'How much time did you spend with people?', lo: 'Alone all day', hi: 'With people all day', from0: true },
+    { id: 'food', short: 'Food', type: 'slider', title: 'How well did you eat today?', lo: 'Badly', hi: 'Very well' },
+    { id: 'exercise', short: 'Exercise', type: 'slider', title: 'How much did you exercise today?', lo: 'Not at all', hi: 'Hard workout', from0: true },
+    { id: 'outside', short: 'Outside', type: 'slider', title: 'How much time did you spend outside?', lo: 'None', hi: 'Most of the day', from0: true },
+    { id: 'hobby', short: 'Hobbies', type: 'choice', title: 'Did you do any hobbies today?', options: YES_NO },
+    { id: 'drinks', short: 'Drinks', type: 'icons', title: 'How many drinks did you have today?', options: [
       { id: '0', label: 'None', art: 'drinks_0' }, { id: '1-2', label: '1 to 2', art: 'drinks_1' }, { id: '3-4', label: '3 to 4', art: 'drinks_2' },
       { id: '5-6', label: '5 to 6', art: 'drinks_3' }, { id: '7+', label: '7 or more', art: 'drinks_4' },
     ] },
-    { id: 'drugs', type: 'icons', title: 'Did you take any drugs today?', options: [
+    { id: 'drugs', short: 'Drugs', type: 'icons', title: 'Did you take any drugs today?', options: [
       { id: 'none', label: 'None', art: 'drugs_none' }, { id: 'cannabis', label: 'Cannabis', art: 'drugs_cannabis' },
       { id: 'other', label: 'Other', art: 'drugs_other' }, { id: 'both', label: 'Cannabis and other', art: 'drugs_both' },
     ] },
-    { id: 'nap', type: 'choice', title: 'Did you nap today?', options: YES_NO },
+    { id: 'nap', short: 'Nap', type: 'choice', title: 'Did you nap today?', options: YES_NO },
   ],
 };

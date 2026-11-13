@@ -439,11 +439,12 @@ function review() {
     h('div', { class: 'top' },
       h('button', { class: 'back', 'aria-label': 'Back', onclick: () => { flow.toReview = false; flow.i = qs.length - 1; question(); } }, '←'),
       h('div', { class: 'progress' }, h('i', { style: 'width:100%' }))),
-    h('h1', null, 'Everything right?'),
-    h('p', { class: 'muted' }, 'Tap an answer to change it. Once you lock it in, it cannot be changed.'),
-    h('ul', { class: 'review' }, qs.map((q, i) => h('li', null, h('button', { onclick: () => { flow.i = i; question(); } },
-      h('span', { class: 'q' }, q.title), h('span', { class: 'a' }, answerView(q, flow.answers[q.id])))))),
-    h('div', { class: 'grow' }), err, send,
+    h('h1', { class: 'rev' }, 'Everything right?'),
+    h('p', { class: 'muted small rev-note' }, 'Tap an answer to change it.'),
+    // rows shrink to fit, so the whole list and the button stay on one screen
+    h('ul', { class: 'review', style: `--rows:${qs.length}` }, qs.map((q, i) => h('li', null, h('button', { onclick: () => { flow.i = i; question(); } },
+      h('span', { class: 'q' }, q.short || q.title), h('span', { class: 'a' }, answerView(q, flow.answers[q.id])))))),
+    err, send,
   );
 }
 
@@ -473,7 +474,7 @@ async function lockIn(btn, err) {
   );
   // No button: the confirmation stays for a moment, then the home screen returns by itself.
   const ticket = drawn;
-  setTimeout(() => { if (drawn === ticket) home(); }, 2800);
+  setTimeout(() => { if (drawn === ticket) home(); }, 1800);
 }
 
 // Coming back to the app (e.g. the next morning): redraw for the current time and re-check the backup.

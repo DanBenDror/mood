@@ -198,3 +198,14 @@ button.moon:active { transform: scale(.97); }
 .logo { width: 48px; height: 48px; }
 .script { font-size: 58px; }
 .moon { width: 212px; height: 212px; font-size: 24px; margin: 0; }
+
+/* Review: compact enough that every answer and the Lock it in button fit on one screen */
+h1.rev { font-size: 24px; margin: 4px 0 0; text-align: center; }
+.rev-note { text-align: center; margin: 2px 0 0; }
+.review { margin: 8px 0 6px; flex: none; }
+.review li { height: clamp(26px, calc((100dvh - 350px) / var(--rows, 13)), 46px); }
+.review button { height: 100%; padding: 0 2px; font-size: 15px; }
+.review .q { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.review .a { display: flex; align-items: center; }
+.facepair .face { width: 26px; height: 26px; }
+.bar { height: 8px; }
