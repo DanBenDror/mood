@@ -409,7 +409,8 @@ function question() {
       buttons.forEach((b) => b.classList.remove('on')); ev.currentTarget.classList.add('on'); set(o.id);
       setTimeout(forward, 220);
     } }, q.type === 'faces' ? faceEl(o.id) : q.type === 'icons' ? svgEl('face', ART[o.art]) : h('span', null, o.label)));
-    body = h('div', { class: q.type === 'faces' ? 'faces' : q.type === 'icons' ? 'icons' : 'choices' }, buttons);
+    // drawings sit in centred rows: four of them make a 2x2 block, otherwise three per row
+    body = h('div', { class: q.type === 'faces' ? 'faces' : q.type === 'icons' ? 'icons' : 'choices', style: `--per:${options.length === 4 ? 2 : 3}` }, buttons);
   }
 
   show(
