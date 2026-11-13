@@ -26,6 +26,7 @@ function run(storeName, mode, fn) {
 export const getKV = (k) => run('kv', 'readonly', (s) => s.get(k));
 export const setKV = (k, v) => run('kv', 'readwrite', (s) => s.put(v, k));
 export const delKV = (k) => run('kv', 'readwrite', (s) => s.delete(k));
+export const clearEntries = () => run('entries', 'readwrite', (s) => s.clear());
 export const allEntries = () => run('entries', 'readonly', (s) => s.getAll());
 export const getEntry = (id) => run('entries', 'readonly', (s) => s.get(id));
 export const putEntry = (e) => run('entries', 'readwrite', (s) => s.put(e));

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15130e">
+<title>Mood icon key</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { padding: calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 48px); }
+  main { max-width: 480px; margin: 0 auto; }
+  h1.key { font: 400 40px/1.1 "La Belle Aurore", cursive; text-align: center; margin: 0 0 4px; }
+  .sub { text-align: center; color: var(--muted); font-size: 15px; margin: 0 0 8px; }
+  h2 { text-align: center; margin: 34px 0 14px; }
+  .grid { display: grid; grid-template-columns: repeat(var(--per, 2), 1fr); gap: 20px 8px; }
+  .item { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; font-size: 15px; line-height: 1.25; }
+  .item .face { width: 64px; height: 64px; }
+  .item small { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="sketch" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.4"/></filter></svg>
+<main>
+  <p style="margin:0 0 18px"><a class="link" style="padding:0" href="./">← Back to Mood</a></p>
+  <h1 class="key">icon key</h1>
+  <p class="sub">What each drawing in Mood means, in the order it appears on screen.</p>
+  <div id="out"></div>
+</main>
+<script type="module">
+// Built from the app's own question list and drawings, so it can never drift out of date.
+import { FORMS, EMOTIONS } from './js/questions.js';
+import { faceSvg, ART } from './js/faces.js';
+
+const item = (svg, label, note) => `<div class="item"><span class="face">${svg}</span><span>${label}${note ? `<br><small>${note}</small>` : ''}</span></div>`;
+const block = (title, per, items) => `<h2>${title}</h2><div class="grid" style="--per:${per}">${items.join('')}</div>`;
+
+const notes = { happy: 'open eyes, smile', excited: 'big open laugh', calm: 'closed eyes, small smile', loving: 'heart eyes',
+  tired: 'heavy lids, yawn', bored: 'flat brows, flat mouth', sad: 'frown and a tear', anxious: 'wide eyes, wavy mouth',
+  stressed: 'squeezed eyes, gritted teeth', angry: 'slanted brows, frown' };
+let html = block('Emotions', 2, EMOTIONS.map((e) => item(faceSvg(e.id), e.label, notes[e.id])));
+
+const seen = new Set();
+for (const q of [...FORMS.morning, ...FORMS.night]) {
+  if (q.type !== 'icons' || seen.has(q.id)) continue;
+  seen.add(q.id);
+  html += block(q.title, q.options.length === 4 ? 2 : 3, q.options.map((o) => item(ART[o.art], o.label)));
+}
+document.getElementById('out').innerHTML = html;
+</script>
+</body>
+</html>
