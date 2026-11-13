@@ -51,14 +51,18 @@ export const ART = {
   bed_one: bed(sleeper(24)),
   bed_two: bed(sleeper(17) + sleeper(31)),
   bed_heart: bed(sleeper(17) + sleeper(31) + heart(24, 35, 1.500)),
-  health_sick: wrap('<path d="M13 19.500q3.500 4 7.500 .500M27.500 20q3.500 3.500 7.500-.500"/><path d="M12.500 14.500l6.500-2M35.500 14.500l-6.500-2" stroke-width="1.800"/><path d="M18.500 28l11-.300l.300 8q-.500 5.300-5.800 5.300t-5.500-5.500z" fill="currentColor" stroke-width="1"/>'),
+  // Sick: a smaller head with crossed-out eyes, and the puke running out below it into a splatter.
+  health_sick: svg(g(HEAD + '<path d="M13 15.500l7 6.500M20 15.500l-7 7M28 15.500l7 6.500M35 15l-7 7"/><ellipse cx="24" cy="33" rx="5.500" ry="4" fill="currentColor" stroke-width="1"/>', 'translate(5.500 0) scale(.77)') +
+    '<path d="M20.800 26.500q-.500 8-2.800 14.500q6 2.500 12 0q-2.300-6.500-2.800-14.500z" fill="currentColor" stroke-width="1"/>' +
+    '<path d="M12 43.500q-3 .500-5 2.500M36 43.500q3 .500 5 2.500M17 45.500q7 2.500 14 0" stroke-width="2"/>' +
+    '<circle cx="9.500" cy="40.500" r="1.100" fill="currentColor" stroke="none"/><circle cx="38.500" cy="40" r="1.100" fill="currentColor" stroke="none"/>'),
   health_dizzy: wrap('<path d="M14 17.500l6.500 6M20.500 17.500l-6.500 6.500M28 17.500l6.500 6M34.500 17l-6.500 6.500"/><path d="M14.500 33q2.300-3.800 4.700 0t4.700 0t4.700 0t4.700 0"/>'),
   health_good: wrap(eye(17, 19.500) + eye(31, 19) + '<path d="M13.500 27.500q10.500 11.500 21-.500"/>'),
   drinks_0: svg(NONE),
   drinks_1: svg(bottle(24, 7)),
   drinks_2: svg(bottle(15) + bottle(33)),
   drinks_3: svg(THREE),
-  drinks_4: svg(g(THREE, 'translate(6 -2) scale(.74)') + g(bottle(24, 6), 'rotate(-80 24 24) translate(-16 2) scale(.8)')),
+  drinks_4: svg(g(THREE, 'translate(7.200 0) scale(.7)') + g(bottle(24, 6), 'translate(24 40.500) rotate(-84) scale(.7) translate(-24 -24.500)')),
   drugs_none: svg(NONE),
   drugs_cannabis: svg(LEAF),
   drugs_other: svg(PILL),
