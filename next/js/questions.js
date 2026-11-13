@@ -62,8 +62,9 @@ export const FORMS = {
       { id: '0', label: 'None', art: 'drinks_0' }, { id: '1-2', label: '1 to 2', art: 'drinks_1' }, { id: '3-4', label: '3 to 4', art: 'drinks_2' },
       { id: '5-6', label: '5 to 6', art: 'drinks_3' }, { id: '7+', label: '7 or more', art: 'drinks_4' },
     ] },
-    { id: 'drugs', type: 'choice', title: 'Did you take any drugs today?', options: [
-      { id: 'none', label: 'None' }, { id: 'cannabis', label: 'Cannabis' }, { id: 'other', label: 'Other' }, { id: 'both', label: 'Cannabis + other' },
+    { id: 'drugs', type: 'icons', title: 'Did you take any drugs today?', options: [
+      { id: 'none', label: 'None', art: 'drugs_none' }, { id: 'cannabis', label: 'Cannabis', art: 'drugs_cannabis' },
+      { id: 'other', label: 'Other', art: 'drugs_other' }, { id: 'both', label: 'Cannabis and other', art: 'drugs_both' },
     ] },
     { id: 'nap', type: 'choice', title: 'Did you nap today?', options: YES_NO },
   ],

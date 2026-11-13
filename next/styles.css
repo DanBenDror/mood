@@ -170,3 +170,22 @@ button.moon:active { transform: scale(.97); }
 .icons button .face { width: 66px; height: 66px; }
 .icons button.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
 .icons button.on .face { color: var(--accent); }
+
+/* ---- Entry screens: centred, no boxes behind the options ---- */
+@font-face { font-family: "La Belle Aurore"; src: url("fonts/la-belle-aurore.woff2") format("woff2"); font-display: swap; }
+.question { align-items: stretch; text-align: center; }
+.question h1.ask { font-family: "La Belle Aurore", "Bradley Hand", cursive; font-weight: 400; font-size: 31px; line-height: 1.3; text-align: center; text-wrap: balance; margin-bottom: 44px; }
+.faces button, .choices button, .icons button,
+.faces button.on, .choices button.on, .icons button.on { background: none; border: 0; border-radius: 0; }
+.faces { grid-template-columns: 1fr 1fr; justify-items: center; gap: 6px 10px; }
+.faces button { padding: 10px 26px; }
+.faces button .face { width: 62px; height: 62px; }
+.icons { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 0; }
+.icons button { flex: 0 0 calc(100% / var(--per, 3)); padding: 12px 6px; }
+.icons button .face { width: 72px; height: 72px; }
+.choices { align-items: center; gap: 4px; }
+.choices button { padding: 14px 30px; font-size: 24px; font-weight: 500; color: var(--text); }
+.faces button, .icons button, .choices button { transition: color .12s, transform .12s; }
+.faces button:active, .icons button:active, .choices button:active { transform: scale(.94); }
+.choices button.on, .faces button.on .face, .icons button.on .face { color: var(--accent); }
+.review + .grow, .review { text-align: left; }
