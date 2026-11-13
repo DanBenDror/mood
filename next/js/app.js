@@ -416,7 +416,7 @@ function question() {
     h('div', { class: 'top' },
       h('button', { class: 'back', onclick: back, 'aria-label': 'Back' }, flow.i === 0 && !flow.toReview ? '✕' : '←'),
       h('div', { class: 'progress' }, h('i', { style: `width:${((flow.i + 1) / (qs.length + 1)) * 100}%` }))),
-    h('div', { class: 'question' }, h('h1', null, q.title), body),
+    h('div', { class: 'question' }, h('h1', { class: 'ask' }, q.title), body),
   );
 }
 
