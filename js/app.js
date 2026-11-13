@@ -301,6 +301,7 @@ async function home() {
       h('h3', null, 'Backup'), status,
       h('h3', null, 'Your data'),
       h('button', { class: 'btn ghost', onclick: exportData }, 'Export my data'),
+      h('a', { class: 'link', style: 'align-self:center', href: 'legend.html' }, 'Icon key: what each drawing means'),
       remote && h('button', { class: 'link', style: 'align-self:center', onclick: signOut }, 'Sign out'),
     ]],
   };
