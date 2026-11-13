@@ -323,19 +323,21 @@ async function home() {
       seg([['morning', 'Morning'], ['night', 'Night']], kind, (id) => { demoKind = id; home(); }),
       h('button', { class: 'link', onclick: async () => { await store.clearEntries(); home(); } }, 'Reset')),
     h('div', { class: 'home' },
-      svgEl('logo', LOGO),
-      h('div', { class: 'script' }, 'what', h('span', { class: 'ap' }, "'"), 's the mood?'),
-      moon,
-      h('div', { class: 'dots' }, days),
-      h('div', { class: 'grow' }),
+      h('div', { class: 'home-top' },
+        svgEl('logo', LOGO),
+        h('div', { class: 'script' }, 'what', h('span', { class: 'ap' }, "'"), 's the mood?'),
+        moon,
+        h('div', { class: 'dots' }, days)),
+      h('div', { class: 'home-gap' }),
       h('div', { class: 'links' }, link('status', 'Status'), link('settings', 'Settings'))),
   );
   onHome = true;
   drawSheet();
 }
 
-async function signOut() {
-  if (!confirm('Sign out? Your entries stay on this phone and in the backup. You will need your passphrase to sign back in.')) return;
+async function signOut(ev) {
+  const btn = ev.currentTarget; // asks for a second tap instead of a pop-up, which some phones suppress
+  if (btn.dataset.armed !== '1') { btn.dataset.armed = '1'; btn.textContent = 'Tap again to sign out (you will need your passphrase to return)'; return; }
   await remote.signOut(); await store.delKV('key'); key = null; authScreen();
 }
 
@@ -392,7 +394,7 @@ function question() {
   }
   function back() {
     if (flow.toReview) return review();
-    if (flow.i === 0) { if (confirm('Leave without saving this entry?')) home(); return; }
+    if (flow.i === 0) return home(); // leaving on the first question drops the unfinished entry
     flow.i--; question();
   }
 
@@ -468,7 +470,10 @@ async function lockIn(btn, err) {
   sync().catch(() => {}); // backup failures are retried from the home screen
   show(h('div', { class: 'question center' }, svgEl('big', ICONS.lock), h('h1', null, 'Locked in'),
     h('p', { class: 'muted' }, kind === 'morning' ? 'Have a good day.' : 'Sleep well.')),
-    h('button', { class: 'btn ghost', onclick: home }, 'Done'));
+  );
+  // No button: the confirmation stays for a moment, then the home screen returns by itself.
+  const ticket = drawn;
+  setTimeout(() => { if (drawn === ticket) home(); }, 2800);
 }
 
 // Coming back to the app (e.g. the next morning): redraw for the current time and re-check the backup.

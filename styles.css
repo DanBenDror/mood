@@ -190,3 +190,11 @@ button.moon:active { transform: scale(.97); }
 .choices button.on, .faces button.on .face, .icons button.on .face { color: var(--accent); }
 .review + .grow, .review { text-align: left; }
 .face svg { overflow: visible; }
+
+/* Home: the top group spreads out, leaving roughly a fifth of the screen empty above the two buttons */
+.home { gap: 0; padding-top: 0; }
+.home-top { flex: 1; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 8px 0; }
+.home-gap { height: 15dvh; flex: none; }
+.logo { width: 48px; height: 48px; }
+.script { font-size: 58px; }
+.moon { width: 212px; height: 212px; font-size: 24px; margin: 0; }
