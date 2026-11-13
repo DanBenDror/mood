@@ -189,3 +189,4 @@ button.moon:active { transform: scale(.97); }
 .faces button:active, .icons button:active, .choices button:active { transform: scale(.94); }
 .choices button.on, .faces button.on .face, .icons button.on .face { color: var(--accent); }
 .review + .grow, .review { text-align: left; }
+.face svg { overflow: visible; }
