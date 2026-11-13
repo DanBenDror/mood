@@ -324,7 +324,7 @@ async function home() {
       h('button', { class: 'link', onclick: async () => { await store.clearEntries(); home(); } }, 'Reset')),
     h('div', { class: 'home' },
       svgEl('logo', LOGO),
-      h('div', { class: 'script' }, "what's the mood?"),
+      h('div', { class: 'script' }, 'what', h('span', { class: 'ap' }, "'"), 's the mood?'),
       moon,
       h('div', { class: 'dots' }, days),
       h('div', { class: 'grow' }),
