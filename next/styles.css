@@ -203,7 +203,8 @@ button.moon:active { transform: scale(.97); }
 h1.rev { font-size: 24px; margin: 4px 0 0; text-align: center; }
 .rev-note { text-align: center; margin: 2px 0 0; }
 .review { margin: 8px 0 6px; flex: none; }
-.review li { height: clamp(26px, calc((100dvh - 350px) / var(--rows, 13)), 46px); }
+/* 290px = everything on the screen that is not a row; the safe areas cover the notch and home bar (iPhone 13 mini: 812pt tall) */
+.review li { height: clamp(24px, calc((100dvh - 290px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) / var(--rows, 13)), 46px); }
 .review button { height: 100%; padding: 0 2px; font-size: 15px; }
 .review .q { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .review .a { display: flex; align-items: center; }

@@ -474,7 +474,7 @@ async function lockIn(btn, err) {
   );
   // No button: the confirmation stays for a moment, then the home screen returns by itself.
   const ticket = drawn;
-  setTimeout(() => { if (drawn === ticket) home(); }, 1800);
+  setTimeout(() => { if (drawn === ticket) home(); }, 1300);
 }
 
 // Coming back to the app (e.g. the next morning): redraw for the current time and re-check the backup.
